@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, TouchableOpacity, Alert } from 'react-native';
 import { Camera } from 'expo-camera';
-import api from './services/api';
+import api from '~/services/api';
 
-export default function App() {
+import Loading from '~/components/loading';
+
+export default function Home() {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+  const [isLoading, setIsLoading] = useState(false);
+
   const cameraRef = useRef(null);
 
   useEffect(() => {
@@ -21,13 +25,29 @@ export default function App() {
         quality: 0.5,
         base64: true,
       });
+      setIsLoading(true);
 
-      const response = await api.post('recognize', {
+      const { data } = await api.post('recognize', {
         image: base64,
         gallery_name: 'MyGallery',
         selector: 'liveness',
       });
-      console.log(response);
+
+      setIsLoading(false);
+
+      if (data.Errors) {
+        const message = data.Errors[0].Message;
+        Alert.alert(message);
+      }
+      if (data.images) {
+        const { transaction } = data.images[0];
+
+        if (transaction.confidence > 0.6) {
+          Alert.alert(`Bem vindo ${transaction.subject_id}`);
+        } else {
+          Alert.alert('Rosto não encontrado');
+        }
+      }
     }
   };
 
@@ -48,6 +68,9 @@ export default function App() {
     }
   };
 
+  if (isLoading) {
+    return <Loading />;
+  }
   if (hasPermission === null) {
     return <View />;
   }
