@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Text, View, TouchableOpacity, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import RNCamera from '~/components/camera';
+import { Camera } from 'expo-camera';
 import api from '~/services/api';
 
 import Loading from '~/components/loading';
